@@ -47,7 +47,7 @@ def start_server(host, port, file_path):
 
 if __name__ == "__main__":
     # 서버 호스트 및 포트 설정
-    server_host = '165.229.229.47' # 학교 와이파이 IP 주소
+    server_host = '172.20.47.161' # 학교 와이파이 IP 주소
     server_port = 5000
 
     # 전송할 CSV 파일 경로 설정
