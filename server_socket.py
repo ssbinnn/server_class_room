@@ -51,7 +51,7 @@ if __name__ == "__main__":
     server_port = 5000
 
     # 전송할 CSV 파일 경로 설정
-    csv_file_path = 'D:\graduate\Class.csv'
+    csv_file_path = 'D:\graduate\server\Class.csv'
 
     # 서버 시작
     start_server(server_host, server_port, csv_file_path)
