@@ -29,7 +29,7 @@ def start_server(host, port, file_path):
                 # CSV 파일 읽기
                 request = request.strip('\n')
 
-                with open(file_path, 'r') as file:
+                with open(file_path, 'r', encoding='utf-8') as file:
                     reader = csv.reader(file)
                     next(reader)  # 헤더 건너뛰기
 
@@ -47,11 +47,11 @@ def start_server(host, port, file_path):
 
 if __name__ == "__main__":
     # 서버 호스트 및 포트 설정
-    server_host = '172.20.47.161' # 학교 와이파이 IP 주소
+    server_host = '165.229.125.159' # 학교 와이파이 IP 주소
     server_port = 5000
 
     # 전송할 CSV 파일 경로 설정
-    csv_file_path = 'D:\graduate\server\Class.csv'
+    csv_file_path = 'Class.csv'
 
     # 서버 시작
     start_server(server_host, server_port, csv_file_path)
