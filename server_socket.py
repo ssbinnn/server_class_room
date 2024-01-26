@@ -22,21 +22,34 @@ client_sockets = []
 
 
 #######################################################
-def process_request(client_socket, request):
+def process_request(client_socket, request, userID):
     request = request.strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
+
+    get_date, get_time = request.split(' ') # 요일, 시간 분리
+    get_hh, get_mm = map(int, get_time.split(':')) # 시, 분 분리
+    get_total = 60*get_hh + get_mm # 분으로 변환
+
 
     with open(csv_file_path, 'r', encoding='utf-8') as file: # csv 파일 읽기
             reader = csv.reader(file)
             next(reader)  # 헤더 건너뛰기
 
             for row in reader: # 행마다 확인
-                if row[0] == request:  # 교수 번호가 일치하면
-                    csv_data = ','.join(row)  # 해당 행의 데이터를 쉼표로 구분해서 문자열 생성
-                    csv_data_with_newline = csv_data + '\n' # 줄바꿈으로 데이터 끝임을 표기
+                if (row[0] == userID) and (row[4] == get_date):  # 교수 번호, 요일 일치
 
-                    client_socket.sendall(csv_data_with_newline.encode()) # 데이터 전송
-                    print(">> 서버에서 보낸 데이터 : ", csv_data)
-                    break
+                    start_hh, start_mm = map(int, row[5].split(':')) # 시, 분 분리
+                    start_total = 60*start_hh + start_mm # 분으로 변환
+
+                    end_hh, end_mm = map(int, row[6].split(':')) # 시, 분 분리
+                    end_total = 60*end_hh + end_mm # 분으로 변환
+
+                    if(get_total >= (start_total - 10)) and (get_total <= end_total) :
+                        csv_data = ','.join(row)  # 해당 행의 데이터를 쉼표로 구분해서 문자열 생성
+                        csv_data_with_newline = csv_data + '\n' # 줄바꿈으로 데이터 끝임을 표기
+
+                        client_socket.sendall(csv_data_with_newline.encode()) # 데이터 전송
+                        print(">> 서버에서 보낸 데이터 : ", csv_data)
+                        break
 
 #######################################################
 ## 클라이언트 접속 시 스레드 생성 ##
@@ -59,7 +72,7 @@ def threaded(client_socket, addr, userID):
         print(">> {} 클라이언트 ( {} ({}) )에서 보낸 데이터 : {}".format(userID, addr[0], addr[1], request)) # 클라이언트가 보낸 데이터
 
         if (request): # 요청이 온 경우
-            process_request(client_socket, request)
+            process_request(client_socket, request, userID)
     
     # 종료한 경우
     if client_socket in client_sockets:
