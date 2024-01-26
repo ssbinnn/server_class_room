@@ -11,7 +11,7 @@ import time
 
 
 ## 서버 호스트 및 포트 설정 ##
-server_host = '165.229.125.95' # 와이파이 IP 주소
+server_host = '165.229.125.77' # 와이파이 IP 주소
 server_port = 5000
 
 ## CSV 파일 경로 설정 ##
@@ -40,8 +40,8 @@ def process_request(client_socket, request):
 
 #######################################################
 ## 클라이언트 접속 시 스레드 생성 ##
-def threaded(client_socket, addr):
-    print('>> 클라이언트와 연결되었습니다 :', addr[0], '(', addr[1], ')')
+def threaded(client_socket, addr, userID):
+    print(">> {} 클라이언트 ( {} ({}) )와 연결되었습니다.".format(userID, addr[0], addr[1]))
 
     ## process until client disconnect ##
 
@@ -51,12 +51,12 @@ def threaded(client_socket, addr):
 
         # 클라이언트가 연결을 종료한 경우
         if not data:
-            print(">>", addr[0], "(", addr[1], ")와 연결이 종료되었습니다.")
+            print(">> {} 클라이언트 ( {} ({}) )와 연결이 종료되었습니다.".format(userID, addr[0], addr[1]))
             client_socket.close()
             break
 
         request = data.decode()
-        print(">>", addr[0], "(", addr[1], ")에서 보낸 데이터 : ", request) # 클라이언트가 보낸 데이터
+        print(">> {} 클라이언트 ( {} ({}) )에서 보낸 데이터 : {}".format(userID, addr[0], addr[1], request)) # 클라이언트가 보낸 데이터
 
         if (request): # 요청이 온 경우
             process_request(client_socket, request)
@@ -96,7 +96,11 @@ def start_server(host, port):
     while True:
         client_socket, addr = server_socket.accept() # 클라이언트와 연결
         client_sockets.append(client_socket) # 클라이언트 목록에 추가
-        start_new_thread(threaded, (client_socket, addr)) # 해당 클라이언트 스레드 실행
+
+        data = client_socket.recv(1024)
+        userID = (data.decode()).strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
+
+        start_new_thread(threaded, (client_socket, addr, userID)) # 해당 클라이언트 스레드 실행
 
         print('>> 접속 중인 클라이언트 수 : ', len(client_sockets))
 
