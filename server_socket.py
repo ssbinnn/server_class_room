@@ -11,7 +11,7 @@ import time
 
 
 ## 서버 호스트 및 포트 설정 ##
-server_host = '165.229.125.77' # 와이파이 IP 주소
+server_host = '165.229.125.102' # 와이파이 IP 주소
 server_port = 5000
 
 ## CSV 파일 경로 설정 ##
@@ -51,12 +51,48 @@ def process_request(client_socket, request, userID):
                         print(">> 서버에서 보낸 데이터 : ", csv_data)
                         break
 
+######################################################
+## 주기적으로 데이터 전송하는 함수 ##
+def process_periodically(client_socket, interval, userID, connect_time):
+
+    get_date, get_time = connect_time.split(' ') # 요일, 시간 분리
+    get_hh, get_mm = map(int, get_time.split(':')) # 시, 분 분리
+    get_total = 60*get_hh + get_mm # 분으로 변환
+
+    while True:
+
+        with open(csv_file_path, 'r', encoding='utf-8') as file: # csv 파일 읽기
+            reader = csv.reader(file)
+            next(reader)  # 헤더 건너뛰기
+
+            for row in reader: # 행마다 확인
+                if (row[0] == userID) and (row[4] == get_date):  # 교수 번호, 요일 일치
+
+                    start_hh, start_mm = map(int, row[5].split(':')) # 시, 분 분리
+                    start_total = 60*start_hh + start_mm # 분으로 변환
+
+                    end_hh, end_mm = map(int, row[6].split(':')) # 시, 분 분리
+                    end_total = 60*end_hh + end_mm # 분으로 변환
+
+                    if(get_total >= (start_total - 10)) and (get_total <= end_total) :
+                        csv_data = ','.join(row)  # 해당 행의 데이터를 쉼표로 구분해서 문자열 생성
+                        csv_data_with_newline = csv_data + '\n' # 줄바꿈으로 데이터 끝임을 표기
+
+                        client_socket.sendall(csv_data_with_newline.encode()) # 데이터 전송
+                        print(">> 서버에서 주기적으로 보낸 데이터 : ", csv_data)
+                        break
+
+        time.sleep(interval) # 초 단위 쉼
+
+        
+
 #######################################################
 ## 클라이언트 접속 시 스레드 생성 ##
-def threaded(client_socket, addr, userID):
+def threaded(client_socket, addr, userID, start_time):
     print(">> {} 클라이언트 ( {} ({}) )와 연결되었습니다.".format(userID, addr[0], addr[1]))
 
     ## process until client disconnect ##
+    start_new_thread(process_periodically, (client_socket, 10, userID, start_time))
 
     while True:
         # 클라이언트로부터 요청(정보) 받기
@@ -81,22 +117,6 @@ def threaded(client_socket, addr, userID):
 
     client_socket.close()
 
-
-######################################################
-## 주기적으로 데이터 전송하는 함수 ##
-def send_data_periodically(client_socket, interval):
-    while True:
-        # 클라이언트에게 전송할 데이터 가져오기
-        # 이 부분을 클라이언트마다 다른 데이터에 따라서 구현해야 합니다.
-        data = "주기적으로 전송되는 데이터"
-
-        # 데이터 전송
-        client_socket.sendall(data.encode())
-        print(">> 주기적으로 서버에서 보낸 데이터: ", data)
-
-        time.sleep(interval)
-
-
 #######################################################
 ## 서버 시작 ##
 def start_server(host, port):
@@ -113,7 +133,10 @@ def start_server(host, port):
         data = client_socket.recv(1024)
         userID = (data.decode()).strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
 
-        start_new_thread(threaded, (client_socket, addr, userID)) # 해당 클라이언트 스레드 실행
+        # userID랑 접속 시간을 같이 받아서,, 그거에 따라서 주기적으로 보내는 스레드 동작하는건 어떨지
+        connect_time = "수 21:00"
+
+        start_new_thread(threaded, (client_socket, addr, userID, connect_time)) # 해당 클라이언트 스레드 실행
 
         print('>> 접속 중인 클라이언트 수 : ', len(client_sockets))
 
