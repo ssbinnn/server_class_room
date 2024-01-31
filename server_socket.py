@@ -131,10 +131,8 @@ def start_server(host, port):
         client_sockets.append(client_socket) # 클라이언트 목록에 추가
 
         data = client_socket.recv(1024)
-        userID = (data.decode()).strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
-
-        # userID랑 접속 시간을 같이 받아서,, 그거에 따라서 주기적으로 보내는 스레드 동작하는건 어떨지
-        connect_time = "수 21:00"
+        data = (data.decode()).strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
+        userID, connect_time = data.split(',') # 요일, 시간 분리
 
         start_new_thread(threaded, (client_socket, addr, userID, connect_time)) # 해당 클라이언트 스레드 실행
 
