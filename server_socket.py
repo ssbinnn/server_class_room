@@ -88,7 +88,7 @@ def process_send(client_socket, interval, userID, connect_time):
         
 #######################################################
 ## 클라이언트 접속 시 수신 스레드 생성 ##
-def process_receive(client_socket, addr, userID, start_time):
+def process_receive(client_socket, addr, userID):
     print(">> {} 클라이언트 ( {} ({}) )와 연결되었습니다.".format(userID, addr[0], addr[1]))
 
     while True:
