@@ -1,6 +1,6 @@
 import socket
 import csv
-from _thread import *
+import threading
 import time
 
 """ 앱에서 로그인 하면서 id를 받기로 함.
@@ -11,7 +11,7 @@ import time
 
 
 ## 서버 호스트 및 포트 설정 ##
-server_host = '165.229.125.102' # 와이파이 IP 주소
+server_host = '165.229.125.191' # 와이파이 IP 주소
 server_port = 5000
 
 ## CSV 파일 경로 설정 ##
@@ -22,6 +22,7 @@ client_sockets = []
 
 
 #######################################################
+## 요청 왔을 때 전송 함수 ##
 def process_request(client_socket, request, userID):
     request = request.strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
 
@@ -53,7 +54,7 @@ def process_request(client_socket, request, userID):
 
 ######################################################
 ## 주기적으로 데이터 전송하는 함수 ##
-def process_periodically(client_socket, interval, userID, connect_time):
+def process_send(client_socket, interval, userID, connect_time):
 
     get_date, get_time = connect_time.split(' ') # 요일, 시간 분리
     get_hh, get_mm = map(int, get_time.split(':')) # 시, 분 분리
@@ -85,14 +86,10 @@ def process_periodically(client_socket, interval, userID, connect_time):
         time.sleep(interval) # 초 단위 쉼
 
         
-
 #######################################################
-## 클라이언트 접속 시 스레드 생성 ##
-def threaded(client_socket, addr, userID, start_time):
+## 클라이언트 접속 시 수신 스레드 생성 ##
+def process_receive(client_socket, addr, userID, start_time):
     print(">> {} 클라이언트 ( {} ({}) )와 연결되었습니다.".format(userID, addr[0], addr[1]))
-
-    ## process until client disconnect ##
-    start_new_thread(process_periodically, (client_socket, 10, userID, start_time))
 
     while True:
         # 클라이언트로부터 요청(정보) 받기
@@ -117,6 +114,7 @@ def threaded(client_socket, addr, userID, start_time):
 
     client_socket.close()
 
+
 #######################################################
 ## 서버 시작 ##
 def start_server(host, port):
@@ -134,11 +132,14 @@ def start_server(host, port):
         data = (data.decode()).strip('\n') # 받은 데이터에서 줄바꿈 기호 제거
         userID, connect_time = data.split(',') # 요일, 시간 분리
 
-        start_new_thread(threaded, (client_socket, addr, userID, connect_time)) # 해당 클라이언트 스레드 실행
+        thread_receive = threading.Thread(target=process_receive, args=(client_socket, addr, userID))
+        thread_receive.start()
+
+        thread_send = threading.Thread(target=process_send, args=(client_socket, 10, userID, connect_time))
+        thread_send.start()
 
         print('>> 접속 중인 클라이언트 수 : ', len(client_sockets))
 
-        
     #server_socket.close() # 서버는 종료하지 않음
 
 
