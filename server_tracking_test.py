@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # YOLO 모델 로드
-net = cv2.dnn.readNet("test_0415\yolov3_training_last.weights", "test_0415\yolov3_testing.cfg")
+net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
 layer_names = net.getLayerNames()
 output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
