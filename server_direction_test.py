@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import csv
 
 # YOLO 모델 로드
 net = cv2.dnn.readNet("test_0415\yolov3_training_last.weights", "test_0415\yolov3_testing.cfg")
@@ -80,6 +81,29 @@ while True:
                         num+=1
                         print(num, ": 왼쪽")
                         prev_x, prev_y = x, y 
+
+                        # CSV 파일 열기
+                        with open('Class.csv', 'r', encoding='utf-8') as file:
+                            reader = csv.DictReader(file)
+                            rows = list(reader)
+                            print(rows)
+
+                        # 수정할 행과 열 찾기
+                        row_index = 2  # 3번째 행 (인덱스 2)
+                        column_name = '현재인원'
+
+                        # 데이터 수정
+                        now = int(rows[row_index][column_name])
+                        print("현재인원 : ", now)
+                        rows[row_index][column_name] = now +1
+
+                        # 파일 다시 쓰기
+                        with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
+                            writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+                            writer.writeheader()
+                            for row in rows:
+                                writer.writerow(row)
+                            print("수정 후 인원 : ", int(rows[row_index][column_name]))
 
 
     # 객체가 탐지되지 않은 경우 prev_x와 prev_y를 None으로 설정합니다.
