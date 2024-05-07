@@ -81,7 +81,8 @@ while True:
                         num+=1
                         print(num, ": 왼쪽")
                         prev_x, prev_y = x, y 
-
+                        
+                        """
                         # CSV 파일 열기
                         with open('Class.csv', 'r', encoding='utf-8') as file:
                             reader = csv.DictReader(file)
@@ -104,7 +105,7 @@ while True:
                             for row in rows:
                                 writer.writerow(row)
                             print("수정 후 인원 : ", int(rows[row_index][column_name]))
-
+                        """
 
     # 객체가 탐지되지 않은 경우 prev_x와 prev_y를 None으로 설정합니다.
     if len(boxes) == 0:

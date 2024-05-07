@@ -11,7 +11,7 @@ import time
 
 
 ## 서버 호스트 및 포트 설정 ##
-server_host = '165.229.125.191' # 와이파이 IP 주소
+server_host = '192.168.161.55' # 와이파이 IP 주소
 server_port = 5000
 
 ## CSV 파일 경로 설정 ##
