@@ -64,18 +64,17 @@ while True:
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-
                 if prev_x is None and prev_y is None : # 인식이 없었던 경우,, 인식 시작 순간에 x,y 기록
                     prev_x, prev_y = x, y
 
                # 이동 방향 계산
                 elif prev_x is not None and prev_y is not None : # 인식이 있는 경우
-                    if x - prev_x > 200 :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                    if x - prev_x > 100 :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
                         num+=1
                         print(num, ": 오른쪽")
                         prev_x, prev_y = x, y
 
-                    elif x - prev_x < -200:  # 화면 왼쪽으로 이동
+                    elif x - prev_x < -100:  # 화면 왼쪽으로 이동
                         num+=1
                         print(num, ": 왼쪽")
                         prev_x, prev_y = x, y 
@@ -113,14 +112,10 @@ while True:
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
     # 탐지된 객체들을 화면에 표시합니다.
-    font = cv2.FONT_HERSHEY_PLAIN
     for i in range(len(boxes)):
         if i in indexes:
             x, y, w, h = boxes[i] # 감지된 개체 둘러싼 사각형 좌표
-            #label = str(classes[class_ids[i]]) # 감지된 물체 이름
             cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
-            #cv2.putText(frame, label, (x, y - 10), font, 1, color, 2)
-            cv2.putText(frame, "", (x, y - 10), font, 1, (255, 255, 255), 2)
 
     # 이미지를 화면에 출력합니다.
     cv2.imshow("output", frame)
