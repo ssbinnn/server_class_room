@@ -3,7 +3,7 @@ import numpy as np
 import csv
 
 # YOLO 모델 로드
-net = cv2.dnn.readNet("test_0415\yolov3_training_last.weights", "test_0415\yolov3_testing.cfg")
+net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
 layer_names = net.getLayerNames()
 output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
@@ -13,7 +13,7 @@ with open("coco_p.names", "r") as f:
 
 # 라즈베리파이 카메라로부터 실시간 영상 받아오기
 #cap = cv2.VideoCapture(0)  # 라즈베리파이 카메라가 연결된 포트 번호를 입력합니다.
-cap = cv2.VideoCapture('http://192.168.126.249:8080/?action=stream')
+cap = cv2.VideoCapture('http://192.168.161.249:8080/?action=stream')
 
 prev_x, prev_y = None, None
 # 몇 번 째 알려주는건지 확인하려구,,
@@ -51,7 +51,7 @@ while True:
             class_id = np.argmax(scores)
             confidence = scores[class_id]
 
-            if classes[class_id] == "person" and confidence > 0.5: # 사람 찾았을 때
+            if confidence > 0.5: # 사람 찾았을 때
                 # 신뢰도 0.5 이상이면 감지 되었다고 간주
 
                 center_x = int(detection[0] * width)
@@ -64,8 +64,6 @@ while True:
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-                
-                # 생각해보니 화면에서 사라지고 난 뒤에 prev_x, prev_y를 처리하는 부분이 없네요 !!
 
                 if prev_x is None and prev_y is None : # 인식이 없었던 경우,, 인식 시작 순간에 x,y 기록
                     prev_x, prev_y = x, y
@@ -120,10 +118,9 @@ while True:
         if i in indexes:
             x, y, w, h = boxes[i] # 감지된 개체 둘러싼 사각형 좌표
             #label = str(classes[class_ids[i]]) # 감지된 물체 이름
-            color = (0, 255, 0)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
             #cv2.putText(frame, label, (x, y - 10), font, 1, color, 2)
-            cv2.putText(frame, "", (x, y - 10), font, 1, color, 2)
+            cv2.putText(frame, "", (x, y - 10), font, 1, (255, 255, 255), 2)
 
     # 이미지를 화면에 출력합니다.
     cv2.imshow("output", frame)
