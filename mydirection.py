@@ -5,7 +5,7 @@ import datetime
 
 def direction(raspberry, room) :
         # YOLO 모델 로드
-    net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
+    net = cv2.dnn.readNet("C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights", "C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg")
     layer_names = net.getLayerNames()
     output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 

@@ -4,12 +4,12 @@ import mydirection as dir
 import threading
 
 # 인원수 계산 #
-raspberry = 'http://192.168.161.249:8080/?action=stream' #강의실 113에 달린 카메라
+raspberry = 'http://192.168.161.249:8080/?action=stream'
 room = '113'
-thread_direction = threading.Thread(target=dir.direction, arg=(raspberry, room))
+thread_direction = threading.Thread(target=dir.direction, args=(raspberry, room))
 thread_direction.start()
 
 ## 소켓 통신 서버 호스트 및 포트 설정 ##
-server_host = '192.168.157.123' # 와이파이 IP 주소
+server_host = '192.168.161.158' # 와이파이 IP 주소
 server_port = 5000
 soc.start_server(server_host, server_port)
