@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import csv
-import datetime
+from datetime import date
 
 def half_direction(raspberry, room) :
         # YOLO 모델 로드
@@ -126,7 +126,7 @@ def updateCSV(direction, room) :
     with open('Class.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         rows = list(reader)
-        print(rows)
+        #print(rows)
 
     weekdays = []
     classrooms = []
@@ -134,7 +134,7 @@ def updateCSV(direction, room) :
         weekdays.append(row['강의 요일'])
         classrooms.append(row['강의실'])
 
-    target_weekday = datetime.today().strftime("%a") #요일축약형
+    target_weekday = date.today().strftime("%a") #요일축약형
     target_classroom = room
 
     matching_rows = []
