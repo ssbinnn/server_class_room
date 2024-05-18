@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
 import csv
+import datetime
 
-def direction(raspberry) :
+def direction(raspberry, room) :
         # YOLO 모델 로드
     net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
     layer_names = net.getLayerNames()
@@ -71,11 +72,13 @@ def direction(raspberry) :
                         if x - prev_x > 100 :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
                             num+=1
                             print(num, ": 오른쪽")
+                            updateCSV("right", room)
                             prev_x, prev_y = x, y
 
                         elif x - prev_x < -100:  # 화면 왼쪽으로 이동
                             num+=1
                             print(num, ": 왼쪽")
+                            updateCSV("left", room)
                             prev_x, prev_y = x, y 
 
         # 객체가 탐지되지 않은 경우 prev_x와 prev_y를 None으로 설정합니다.
@@ -100,3 +103,52 @@ def direction(raspberry) :
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+
+def updateCSV(direction, room) :
+    with open('Class.csv', 'r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        rows = list(reader)
+        print(rows)
+
+    weekdays = []
+    classrooms = []
+    for row in rows:
+        weekdays.append(row['강의 요일'])
+        classrooms.append(row['강의실'])
+
+    target_weekday = datetime.today().strftime("%a") #요일축약형
+    target_classroom = room
+
+    matching_rows = []
+    for i, (weekday, classroom) in enumerate(zip(weekdays, classrooms)):
+        if weekday == target_weekday and classroom == target_classroom:
+            matching_rows.append(i)
+
+    if matching_rows:
+        print(f"Rows with the target weekday ({target_weekday}) and classroom ({target_classroom}): {matching_rows}")
+    else:
+        print("No matching rows found.")
+
+    column_name = '현재인원'
+
+    for row_index in matching_rows:
+        now = int(rows[row_index][column_name])
+        print(f"현재인원 (행 {row_index}): {now}")
+        
+        if (direction == "right") :
+            rows[row_index][column_name] = now +1
+        elif (direction == "left") :
+            rows[row_index][column_name] = now -1
+
+        print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
+
+
+    # 파일 다시 쓰기
+    with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=rows[0].keys())
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        print("수정 후 인원 : ", int(rows[row_index][column_name]))
