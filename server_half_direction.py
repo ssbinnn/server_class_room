@@ -19,6 +19,7 @@ first_x, first_y = None, None
 prev_x, prev_y = None, None
 center_x, center_y = None, None
 
+# 몇 번 째 알려주는건지 확인하려구,,
 num = 0
 
 while True:
@@ -27,8 +28,8 @@ while True:
 
     # 이미지의 크기를 가져옵니다.
     height, width, channels = frame.shape
-    print(height, width) # height = 480, width = 640
-
+    #print(height, width) # height = 480, width = 640
+    
     # 이미지를 YOLO 모델에 입력할 수 있는 형태로 변환합니다.
     blob = cv2.dnn.blobFromImage(frame, 0.00392, (320, 320), (0, 0, 0), True, crop=False)
     """
@@ -56,60 +57,52 @@ while True:
 
             if confidence > 0.5: # 사람 찾았을 때
                 # 신뢰도 0.5 이상이면 감지 되었다고 간주
+                
+                prev_x = center_x
+                prev_y = center_y
+                print("prev : ", prev_x, prev_y)
 
-                center_x = int(detection[0] * width)
+                center_x = int(detection[0] * width) # 업데이트된 센터
                 center_y = int(detection[1] * height)
                 w = int(detection[2] * width)
                 h = int(detection[3] * height)
                 x = int(center_x - w / 2)
                 y = int(center_y - h / 2)
                 boxes.append([x, y, w, h])
+                print("좌표", center_x, center_y, w, h)
+
                 confidences.append(float(confidence))
                 class_ids.append(class_id)
 
-                if prev_x is None and prev_y is None : # 인식이 없었던 경우,, 인식 시작 순간에 x,y 기록
-                    prev_x, prev_y = x, y
+                if first_x is None and first_y is None : # 인식이 없었던 경우,, 인식 시작 순간에 x,y 기록
+                    first_x, first_y = center_x, center_y
+                    print("first : ", first_x, first_y)
 
                # 이동 방향 계산
-                elif prev_x is not None and prev_y is not None : # 인식이 있는 경우
-                    if x - prev_x > 100 :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
-                        num+=1
-                        print(num, ": 오른쪽")
-                        prev_x, prev_y = x, y
-
-                    elif x - prev_x < -100:  # 화면 왼쪽으로 이동
-                        num+=1
-                        print(num, ": 왼쪽")
-                        prev_x, prev_y = x, y 
+                elif first_x is not None and first_y is not None : # 인식이 있는 경우
+                    if (abs(center_x - prev_x) > 50 or abs(center_y - prev_y) > 50) : # 인식이 사라졌다고 생각
+                        print("None")
+                        first_x, first_y = None, None
                         
-                        """
-                        # CSV 파일 열기
-                        with open('Class.csv', 'r', encoding='utf-8') as file:
-                            reader = csv.DictReader(file)
-                            rows = list(reader)
-                            print(rows)
+                    else : # 인식 유지
+                        if ((first_x >= 0 and first_x <= 320) and (center_x >= 320 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                            num+=1
+                            print(num, ": 오른쪽")
+                            first_x, first_y = None, None
 
-                        # 수정할 행과 열 찾기
-                        row_index = 2  # 3번째 행 (인덱스 2)
-                        column_name = '현재인원'
-
-                        # 데이터 수정
-                        now = int(rows[row_index][column_name])
-                        print("현재인원 : ", now)
-                        rows[row_index][column_name] = now +1
-
-                        # 파일 다시 쓰기
-                        with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
-                            writer = csv.DictWriter(file, fieldnames=rows[0].keys())
-                            writer.writeheader()
-                            for row in rows:
-                                writer.writerow(row)
-                            print("수정 후 인원 : ", int(rows[row_index][column_name]))
-                        """
+                        elif ((first_x > 320 and first_x <= 640) and (center_x >= 0 and center_x < 320)) :  # 화면 왼쪽으로 이동
+                            num+=1
+                            print(num, ": 왼쪽")
+                            first_x, first_y = None, None
+                        
+                        
 
     # 객체가 탐지되지 않은 경우 prev_x와 prev_y를 None으로 설정합니다.
+    """
     if len(boxes) == 0:
-        prev_x, prev_y = None, None
+        first_x, first_y = None, None
+        print("사라짐! none")
+    """
 
     # 비 최대 억제를 통해 겹치는 박스를 제거합니다. 노이즈 제거.
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
