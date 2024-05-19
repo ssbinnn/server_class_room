@@ -78,18 +78,33 @@ def half_direction(raspberry, room) :
 
                     # 이동 방향 계산
                     elif first_x is not None and first_y is not None : # 인식이 있는 경우
-                        if (abs(center_x - prev_x) >100 or abs(center_y - prev_y) > 50) : # 인식이 사라졌다고 생각
-                            print("None")
-                            first_x, first_y = None, None
-                            
-                        else : # 인식 유지
-                            if ((first_x >= 0 and first_x <= 300) and (center_x >= 340 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+
+                        if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 160) :
+                            if ((first_x >= 0 and first_x <= 280) and (center_x >= 470 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
                                 num+=1
                                 print(num, ": 오른쪽*******************************")
                                 updateCSV("right", room)
                                 first_x, first_y = None, None
 
-                            elif ((first_x > 340 and first_x <= 640) and (center_x >= 0 and center_x < 300)) :  # 화면 왼쪽으로 이동
+                            elif ((first_x > 470 and first_x <= 640) and (center_x >= 0 and center_x < 280)) :  # 화면 왼쪽으로 이동
+                                num+=1
+                                print(num, ": ********************************왼쪽")
+                                updateCSV("left", room)
+                                first_x, first_y = None, None
+
+                            else : # 다른 구역으로 넘어가지 않고.
+                                print("None")
+                                first_x, first_y = None, None
+                            
+
+                        else : # 인식 유지
+                            if ((first_x >= 0 and first_x <= 320) and (center_x >= 340 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                                num+=1
+                                print(num, ": 오른쪽*******************************")
+                                updateCSV("right", room)
+                                first_x, first_y = None, None
+
+                            elif ((first_x > 320 and first_x <= 640) and (center_x >= 0 and center_x < 300)) :  # 화면 왼쪽으로 이동
                                 num+=1
                                 print(num, ": ********************************왼쪽")
                                 updateCSV("left", room)
