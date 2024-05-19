@@ -80,32 +80,40 @@ def half_direction(raspberry, room) :
                     elif first_x is not None and first_y is not None : # 인식이 있는 경우
 
                         if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 160) :
-                            if ((first_x >= 0 and first_x <= 280) and (center_x >= 470 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
-                                num+=1
-                                print(num, ": 오른쪽*******************************")
-                                updateCSV("right", room)
-                                first_x, first_y = None, None
+                            # 센터랑 프리브랑 사이즈가 크더라도, 프리브랑 센터랑 280과 460 사이에 있따면
+                            # 우리는 first랑 센터랑 비교해서 방향을 판단할거예요
+                            if ((prev_x >= 280 and prev_x <= 460) and (center_x >= 280 and center_x <= 460)) :
 
-                            elif ((first_x > 470 and first_x <= 640) and (center_x >= 0 and center_x < 280)) :  # 화면 왼쪽으로 이동
-                                num+=1
-                                print(num, ": ********************************왼쪽")
-                                updateCSV("left", room)
-                                first_x, first_y = None, None
+                                if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                                    num+=1
+                                    print("점프 인식 first : ", first_x, first_y)
+                                    print(num, ": 점프 오른쪽*******************************")
+                                    updateCSV("right", room)
+                                    first_x, first_y = None, None
+
+                                elif ((first_x > 320 and first_x <= 640) and (center_x <= 300)) :  # 화면 왼쪽으로 이동
+                                    num+=1
+                                    print("점프 인식 first : ", first_x, first_y)
+                                    print(num, ": ********************************점프 왼쪽")
+                                    updateCSV("left", room)
+                                    first_x, first_y = None, None
 
                             else : # 다른 구역으로 넘어가지 않고.
-                                print("None")
+                                print("너무 점프해서 None")
                                 first_x, first_y = None, None
                             
 
                         else : # 인식 유지
                             if ((first_x >= 0 and first_x <= 320) and (center_x >= 340 and center_x <= 640)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
                                 num+=1
+                                print("평범한 first : ", first_x, first_y)
                                 print(num, ": 오른쪽*******************************")
                                 updateCSV("right", room)
                                 first_x, first_y = None, None
 
                             elif ((first_x > 320 and first_x <= 640) and (center_x >= 0 and center_x < 300)) :  # 화면 왼쪽으로 이동
                                 num+=1
+                                print("평범한 first : ", first_x, first_y)
                                 print(num, ": ********************************왼쪽")
                                 updateCSV("left", room)
                                 first_x, first_y = None, None
