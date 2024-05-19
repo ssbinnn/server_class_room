@@ -82,8 +82,7 @@ def half_direction(raspberry, room) :
                         if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 160) :
                             # 센터랑 프리브랑 사이즈가 크더라도, 프리브랑 센터랑 280과 460 사이에 있따면
                             # 우리는 first랑 센터랑 비교해서 방향을 판단할거예요
-                            if ((prev_x >= 280 and prev_x <= 460) and (center_x >= 280 and center_x <= 460)) :
-
+                            if ((prev_x >= 180 and prev_x <= 460) and (center_x >= 180 and center_x <= 460)) :
                                 if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
                                     num+=1
                                     print("점프 인식 first : ", first_x, first_y)
