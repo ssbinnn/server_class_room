@@ -76,6 +76,27 @@ def half_direction(raspberry, room) :
                         first_x, first_y = center_x, center_y
                         print("first : ", first_x, first_y)
 
+                    elif first_x is not None and first_y is not None : # 인식이 있는 경우
+                        if ((prev_x >= 180 and prev_x <= 460) and (center_x >= 180 and center_x <= 460)) :
+                            if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                                num+=1
+                                print("점프 인식 first : ", first_x, first_y)
+                                print(num, ": 점프 오른쪽*******************************")
+                                updateCSV("right", room)
+                                first_x, first_y = None, None
+
+                            elif ((first_x > 320 and first_x <= 640) and (center_x < 300)) :  # 화면 왼쪽으로 이동
+                                num+=1
+                                print("점프 인식 first : ", first_x, first_y)
+                                print(num, ": ********************************점프 왼쪽")
+                                updateCSV("left", room)
+                                first_x, first_y = None, None
+
+                        else :
+                            print("너무 점프해서 None")
+                            first_x, first_y = None, None
+
+                    """
                     # 이동 방향 계산
                     elif first_x is not None and first_y is not None : # 인식이 있는 경우
 
@@ -116,6 +137,8 @@ def half_direction(raspberry, room) :
                                 print(num, ": ********************************왼쪽")
                                 updateCSV("left", room)
                                 first_x, first_y = None, None
+                    """
+
                                 
         """
         # 객체가 탐지되지 않은 경우 prev_x와 prev_y를 None으로 설정합니다.
