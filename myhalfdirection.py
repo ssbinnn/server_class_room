@@ -21,13 +21,12 @@ def half_direction(camera, room) :
     first_x, first_y = None, None # 객체 탐지 시작 좌표
     prev_x, prev_y = None, None # 전 프레임에서 객체 좌표
     center_x, center_y = None, None # 현 프레임에서 객체 좌표
-
-    num = 0 # 확인용 번호
+    bound = 20 # 인원수 세기 시 경계 값
 
     while True:
         _, frame = cap.read() # 카메라에서 이미지 받아옴
 
-        height, width, channels = frame.shape # 이미지 크기 (width = 640)
+        height, width, channels = frame.shape # 이미지 크기 (height = 320, width = 640)
 
         # 이미지를 YOLO 모델에 입력할 수 있는 형태로 변환
         blob = cv2.dnn.blobFromImage(frame, 0.00392, (320, 320), (0, 0, 0), True, crop=False)
@@ -54,7 +53,7 @@ def half_direction(camera, room) :
 
                     prev_x = center_x
                     prev_y = center_y
-                    print("prev : ", prev_x, prev_y)
+                    #print("prev : ", prev_x, prev_y)
 
                     # 객체의 좌표
                     center_x = int(detection[0] * width)
@@ -68,50 +67,40 @@ def half_direction(camera, room) :
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-                    print("좌표", center_x, center_y, w, h)
+                    #print("좌표", center_x, center_y, w, h)
 
                     if first_x is None and first_y is None : # 객체 인식이 없었던 경우. 인식 시작 순간의 좌표 저장
                         first_x, first_y = center_x, center_y
-                        print("first : ", first_x, first_y)
+                        #print("first : ", first_x, first_y)
 
                     elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
-
-                        if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 160) :
+                        if (abs(center_x - prev_x) > (width/2-bound)/3 or abs(center_y - prev_y) > height/3) :
                             # 센터랑 프리브랑 사이즈가 크더라도, 프리브랑 센터랑 280과 460 사이에 있따면
                             # 우리는 first랑 센터랑 비교해서 방향을 판단할거예요
-                            if ((prev_x >= 180 and prev_x <= 460) and (center_x >= 180 and center_x <= 460)) :
-                                if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
-                                    num+=1
-                                    print("점프 인식 first : ", first_x, first_y)
-                                    print(num, ": 점프 오른쪽*******************************")
+                            if ((prev_x >= (width/4 + bound) and prev_x <= (width*0.75 - bound)) and (center_x >= (width/4 + bound) and center_x <= (width*0.75 - bound))) :
+                                if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound))) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                                    #print("right")
                                     updateCSV("right", room)
                                     first_x, first_y = None, None
 
-                                elif ((first_x > 320 and first_x <= 640) and (center_x <= 300)) :  # 화면 왼쪽으로 이동
-                                    num+=1
-                                    print("점프 인식 first : ", first_x, first_y)
-                                    print(num, ": ********************************점프 왼쪽")
+                                elif ((first_x > width/2 and first_x <= width) and (center_x <= (width/2 - bound))) :  # 화면 왼쪽으로 이동
+                                    #print("left")
                                     updateCSV("left", room)
                                     first_x, first_y = None, None
 
                             else : # 다른 구역으로 넘어가지 않고.
-                                print("너무 점프해서 None")
                                 first_x, first_y = None, None
                             
                         else : # 인식 유지
 
                             # 현 위치 x와 인식 시작 위치 first_x 차이
-                            if ((first_x >= 0 and first_x <= 320) and (center_x >= 340 and center_x <= 640)) : # 화면 오른쪽으로 이동
-                                num+=1
-                                print("평범한 first : ", first_x, first_y)
-                                print(num, ": 오른쪽*******************************")
+                            if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound) and center_x <= width)) : # 화면 오른쪽으로 이동
+                                #print("right")
                                 updateCSV("right", room)
                                 first_x, first_y = None, None
 
-                            elif ((first_x > 320 and first_x <= 640) and (center_x >= 0 and center_x < 300)) :  # 화면 왼쪽으로 이동
-                                num+=1
-                                print("평범한 first : ", first_x, first_y)
-                                print(num, ": ********************************왼쪽")
+                            elif ((first_x > width/2 and first_x <= width) and (center_x >= 0 and center_x < (width/2 - bound))) :  # 화면 왼쪽으로 이동
+                                #print("left")
                                 updateCSV("left", room)
                                 first_x, first_y = None, None
 
@@ -157,10 +146,8 @@ def updateCSV(direction, room) :
         if weekday == target_weekday and classroom == target_classroom:
             matching_rows.append(i)
 
-    if matching_rows:
-        print(f"Rows with the target weekday ({target_weekday}) and classroom ({target_classroom}): {matching_rows}")
-    else:
-        print("No matching rows found.")
+    if len(matching_rows) == 0:
+        print(f"No matching Rows with the target weekday ({target_weekday})")
 
     column_name = '현재인원'
 
@@ -172,9 +159,7 @@ def updateCSV(direction, room) :
             rows[row_index][column_name] = now +1
         elif (direction == "left") :
             rows[row_index][column_name] = now -1
-
-        print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
-
+        #print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
 
     # 파일 다시 쓰기
     with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
