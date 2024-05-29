@@ -4,12 +4,11 @@ import mydirection as dir
 import myhalfdirection as hdir
 import threading
 
-# 인원수 계산 #
+## 인원수 계산 ##
 #raspberry = 'http://192.168.161.249:8080/?action=stream'
-raspberry = int(0)
-room = '113'
-#thread_direction = threading.Thread(target=dir.direction, args=(raspberry, room))
-thread_direction = threading.Thread(target=hdir.half_direction, args=(raspberry, room))
+camera = int(0) # 웹캠 연결
+room = '113' # 강의실
+thread_direction = threading.Thread(target=hdir.half_direction, args=(camera, room)) # 인원 수 계산 스레드
 thread_direction.start()
 
 ## 소켓 통신 서버 호스트 및 포트 설정 ##
