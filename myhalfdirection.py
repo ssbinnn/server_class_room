@@ -132,9 +132,7 @@ def updateCSV(direction, room) :
     # 객체 이동 방향에 맞게 csv 파일 업데이트
     with open('Class.csv', 'r', encoding='utf-8') as file: # csv 파일 읽기
         reader = csv.DictReader(file) # csv를 dict 형태로 읽음 (열 이름 : value)
-        print("reader", reader)
-        rows = list(reader) # 읽어온 행을 리스트로 저장
-        print("rows", rows)
+        rows = list(reader) # 읽어온 행들을 리스트로 저장
 
     weekdays = []
     classrooms = []
@@ -149,7 +147,6 @@ def updateCSV(direction, room) :
     for i, (weekday, classroom) in enumerate(zip(weekdays, classrooms)):
         if weekday == target_weekday and classroom == room:
             matching_rows.append(i)
-    print("match", matching_rows)
 
     if len(matching_rows) == 0: # 해당하는 행이 없는 경우
         print(f"No matching Rows with the target weekday ({target_weekday})")
@@ -164,7 +161,7 @@ def updateCSV(direction, room) :
             rows[row_index][column_name] = now +1
         elif (direction == "left") : # 왼쪽인 경우 인원수 -1
             rows[row_index][column_name] = now -1
-        #print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
+        print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
 
     # 수정된 내용을 csv에 다시 작성
     with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
@@ -172,4 +169,4 @@ def updateCSV(direction, room) :
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
-        print("수정 후 인원 : ", int(rows[row_index][column_name]))
+        #print("수정 후 인원 : ", int(rows[row_index][column_name]))
