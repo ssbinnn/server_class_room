@@ -75,10 +75,12 @@ def half_direction(camera, room) :
 
                     elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
                         if (abs(center_x - prev_x) > (width/2-bound)/3 or abs(center_y - prev_y) > height/3) :
-                            # 센터랑 프리브랑 사이즈가 크더라도, 프리브랑 센터랑 280과 460 사이에 있따면
-                            # 우리는 first랑 센터랑 비교해서 방향을 판단할거예요
-                            if ((prev_x >= (width/4 + bound) and prev_x <= (width*0.75 - bound)) and (center_x >= (width/4 + bound) and center_x <= (width*0.75 - bound))) :
-                                if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound))) :  # 현 위치 x와 인식 시작됐던 prev_x의 차이 // 화면 오른쪽으로 이동
+                            # 프레임 끊김 현상이 있었던 경우 (이동 간격이 큰 경우)
+                            if ((prev_x >= (width/4 + bound) and prev_x <= (width*0.75 - bound)) and
+                                 (center_x >= (width/4 + bound) and center_x <= (width*0.75 - bound))) :
+                                # 허용 범위 내에서 프레임 끊김 현상이 있었던 경우
+                                # 현 위치 x와 인식 시작됐던 first_x 차이로 방향 파악
+                                if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound))) :  # 화면 오른쪽으로 이동
                                     #print("right")
                                     updateCSV("right", room)
                                     first_x, first_y = None, None
@@ -88,10 +90,11 @@ def half_direction(camera, room) :
                                     updateCSV("left", room)
                                     first_x, first_y = None, None
 
-                            else : # 다른 구역으로 넘어가지 않고.
-                                first_x, first_y = None, None
+                            else : # 허용 범위를 벗어난 간격일 경우
+                                first_x, first_y = None, None # 객체 인식 시작 좌표를 None으로 초기화
                             
-                        else : # 인식 유지
+
+                        else :
 
                             # 현 위치 x와 인식 시작 위치 first_x 차이
                             if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound) and center_x <= width)) : # 화면 오른쪽으로 이동
@@ -128,9 +131,10 @@ def half_direction(camera, room) :
 def updateCSV(direction, room) :
     # 객체 이동 방향에 맞게 csv 파일 업데이트
     with open('Class.csv', 'r', encoding='utf-8') as file: # csv 파일 읽기
-        reader = csv.DictReader(file)
-        rows = list(reader)
-        #print(rows)
+        reader = csv.DictReader(file) # csv를 dict 형태로 읽음 (열 이름 : value)
+        print("reader", reader)
+        rows = list(reader) # 읽어온 행을 리스트로 저장
+        print("rows", rows)
 
     weekdays = []
     classrooms = []
@@ -138,30 +142,31 @@ def updateCSV(direction, room) :
         weekdays.append(row['강의 요일'])
         classrooms.append(row['강의실'])
 
-    target_weekday = date.today().strftime("%a") #요일축약형
-    target_classroom = room
+    target_weekday = date.today().strftime("%a") # 요일
 
     matching_rows = []
+    # 요일, 강의실에 해당하는 행 찾기
     for i, (weekday, classroom) in enumerate(zip(weekdays, classrooms)):
-        if weekday == target_weekday and classroom == target_classroom:
+        if weekday == target_weekday and classroom == room:
             matching_rows.append(i)
+    print("match", matching_rows)
 
-    if len(matching_rows) == 0:
+    if len(matching_rows) == 0: # 해당하는 행이 없는 경우
         print(f"No matching Rows with the target weekday ({target_weekday})")
 
-    column_name = '현재인원'
+    column_name = '현재인원' # 수정할 열의 이름
 
     for row_index in matching_rows:
         now = int(rows[row_index][column_name])
         print(f"현재인원 (행 {row_index}): {now}")
         
-        if (direction == "right") :
+        if (direction == "right") : # 오른쪽인 경우 인원수 +1
             rows[row_index][column_name] = now +1
-        elif (direction == "left") :
+        elif (direction == "left") : # 왼쪽인 경우 인원수 -1
             rows[row_index][column_name] = now -1
         #print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
 
-    # 파일 다시 쓰기
+    # 수정된 내용을 csv에 다시 작성
     with open('Class.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=rows[0].keys())
         writer.writeheader()
