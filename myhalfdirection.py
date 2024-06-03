@@ -69,43 +69,8 @@ def half_direction(camera, room) :
 
                     #print("좌표", center_x, center_y, w, h)
 
-                    if first_x is None and first_y is None : # 객체 인식이 없었던 경우. 인식 시작 순간의 좌표 저장
-                        first_x, first_y = center_x, center_y
-                        #print("first : ", first_x, first_y)
-
-                    elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
-                        if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 180) :
-                            # 프레임 끊김 현상이 있었던 경우 (이동 간격이 큰 경우)
-                            if (prev_x >= 180 and prev_x <= 460) and (center_x >= 180 and center_x <= 460) :
-                                # 허용 범위 내에서 프레임 끊김 현상이 있었던 경우
-                                # 현 위치 x와 인식 시작됐던 first_x 차이로 방향 파악
-                                if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 화면 오른쪽으로 이동
-                                    #print("right")
-                                    updateCSV("right", room)
-                                    first_x, first_y = None, None
-
-                                elif ((first_x > 320 and first_x <= 460) and (center_x <= 300)) :  # 화면 왼쪽으로 이동
-                                    #print("left")
-                                    updateCSV("left", room)
-                                    first_x, first_y = None, None
-
-                            else : # 허용 범위를 벗어난 간격일 경우
-                                first_x, first_y = None, None # 객체 인식 시작 좌표를 None으로 초기화
-                                #print("점프")
-
-                        else :
-
-                            # 현 위치 x와 인식 시작 위치 first_x 차이
-                            if ((first_x >= 0 and first_x <= 320) and (center_x >= 340 and center_x <= width)) : # 화면 오른쪽으로 이동
-                                #print("right")
-                                updateCSV("right", room)
-                                first_x, first_y = None, None
-
-                            elif (first_x > 320 and first_x <= width) and (center_x >= 0 and center_x < 300) :  # 화면 왼쪽으로 이동
-                                #print("left")
-                                updateCSV("left", room)
-                                first_x, first_y = None, None
-                                
+                    first_x, first_y = update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width)
+     
                     """
                     if first_x is None and first_y is None : # 객체 인식이 없었던 경우. 인식 시작 순간의 좌표 저장
                         first_x, first_y = center_x, center_y
@@ -165,6 +130,28 @@ def half_direction(camera, room) :
     cap.release()
     cv2.destroyAllWindows()
 
+def update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width):
+    if first_x is None and first_y is None:
+        return center_x, center_y
+
+    if abs(center_x - prev_x) > 150 or abs(center_y - prev_y) > 180:
+        if 180 <= prev_x <= 460 and 180 <= center_x <= 460:
+            if first_x <= 320 and center_x >= 340:
+                updateCSV("right", room)
+                return None, None
+            elif first_x > 320 and center_x <= 300:
+                updateCSV("left", room)
+                return None, None
+        return None, None
+
+    if first_x <= 320 and 340 <= center_x <= width:
+        updateCSV("right", room)
+        return None, None
+    elif 320 < first_x <= width and 0 <= center_x < 300:
+        updateCSV("left", room)
+        return None, None
+
+    return first_x, first_y
 
 
 def updateCSV(direction, room) :
