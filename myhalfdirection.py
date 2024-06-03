@@ -6,8 +6,8 @@ from datetime import date
 def half_direction(camera, room) :
 
     # YOLO 모델 로드
-    #net = cv2.dnn.readNet("C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights", "C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg")
-    net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
+    net = cv2.dnn.readNet("C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights", "C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg")
+    #net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
     layer_names = net.getLayerNames()
     output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
@@ -74,6 +74,44 @@ def half_direction(camera, room) :
                         #print("first : ", first_x, first_y)
 
                     elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
+                        if (abs(center_x - prev_x) > 100 or abs(center_y - prev_y) > 180) :
+                            # 프레임 끊김 현상이 있었던 경우 (이동 간격이 큰 경우)
+                            if (prev_x >= 180 and prev_x <= 460) and (center_x >= 180 and center_x <= 460) :
+                                # 허용 범위 내에서 프레임 끊김 현상이 있었던 경우
+                                # 현 위치 x와 인식 시작됐던 first_x 차이로 방향 파악
+                                if ((first_x >= 0 and first_x <= 320) and (center_x >= 340)) :  # 화면 오른쪽으로 이동
+                                    #print("right")
+                                    updateCSV("right", room)
+                                    first_x, first_y = None, None
+
+                                elif ((first_x > 320 and first_x <= 460) and (center_x <= 300)) :  # 화면 왼쪽으로 이동
+                                    #print("left")
+                                    updateCSV("left", room)
+                                    first_x, first_y = None, None
+
+                            else : # 허용 범위를 벗어난 간격일 경우
+                                first_x, first_y = None, None # 객체 인식 시작 좌표를 None으로 초기화
+                                #print("점프")
+
+                        else :
+
+                            # 현 위치 x와 인식 시작 위치 first_x 차이
+                            if ((first_x >= 0 and first_x <= 320) and (center_x >= 340 and center_x <= width)) : # 화면 오른쪽으로 이동
+                                #print("right")
+                                updateCSV("right", room)
+                                first_x, first_y = None, None
+
+                            elif (first_x > 320 and first_x <= width) and (center_x >= 0 and center_x < 300) :  # 화면 왼쪽으로 이동
+                                #print("left")
+                                updateCSV("left", room)
+                                first_x, first_y = None, None
+                                
+                    """
+                    if first_x is None and first_y is None : # 객체 인식이 없었던 경우. 인식 시작 순간의 좌표 저장
+                        first_x, first_y = center_x, center_y
+                        #print("first : ", first_x, first_y)
+
+                    elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
                         if (abs(center_x - prev_x) > (width/2-bound)/3 or abs(center_y - prev_y) > height/3) :
                             # 프레임 끊김 현상이 있었던 경우 (이동 간격이 큰 경우)
                             if ((prev_x >= (width/4 + bound) and prev_x <= (width*0.75 - bound)) and
@@ -92,7 +130,7 @@ def half_direction(camera, room) :
 
                             else : # 허용 범위를 벗어난 간격일 경우
                                 first_x, first_y = None, None # 객체 인식 시작 좌표를 None으로 초기화
-                            
+                                print("점프")
 
                         else :
 
@@ -106,6 +144,7 @@ def half_direction(camera, room) :
                                 #print("left")
                                 updateCSV("left", room)
                                 first_x, first_y = None, None
+                                """
 
 
         # 비 최대 억제를 통해 겹치는 박스를 제거 (노이즈 제거)
@@ -158,9 +197,9 @@ def updateCSV(direction, room) :
         print(f"현재인원 (행 {row_index}): {now}")
         
         if (direction == "right") : # 오른쪽인 경우 인원수 +1
-            rows[row_index][column_name] = now +1
-        elif (direction == "left") : # 왼쪽인 경우 인원수 -1
             rows[row_index][column_name] = now -1
+        elif (direction == "left") : # 왼쪽인 경우 인원수 -1
+            rows[row_index][column_name] = now +1
         print(f"수정된 현재인원 (행 {row_index}): {rows[row_index][column_name]}")
 
     # 수정된 내용을 csv에 다시 작성
