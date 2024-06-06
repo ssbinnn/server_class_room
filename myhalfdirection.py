@@ -6,8 +6,22 @@ from datetime import date
 def half_direction(camera, room) :
 
     # YOLO 모델 로드
-    net = cv2.dnn.readNet("C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights", "C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg")
     #net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
+    net=cv2.dnn.readNet("D:\\Graduate\\yolov3_training_last.weights","D:\\Graduate\\yolov3_total.cfg")
+    """
+    weight 파일
+    C:\\Users\\tnehd\\Downloads\\yolov3_training_final.weights  
+    C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights  
+    D:\\Graduate\\yolov3_training_final.weights
+    D:\\Graduate\\yolov3_training_last.weights 
+
+    cfg 파일
+    C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg
+    C:\\Users\\tnehd\\Downloads\\yolov3_add.cfg
+    D:\\Graduate\\yolov3_add.cfg
+    D:\\Graduate\\yolov3_total.cfg
+    """
+    
     layer_names = net.getLayerNames()
     output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
@@ -17,6 +31,8 @@ def half_direction(camera, room) :
 
     # 카메라로부터 실시간 영상 받아오기
     cap = cv2.VideoCapture(camera)
+    #cap.set(cv2.CAP_PROP_FPS, 15)
+    print("fps : ", cap.get(cv2.CAP_PROP_FPS))
 
     first_x, first_y = None, None # 객체 탐지 시작 좌표
     prev_x, prev_y = None, None # 전 프레임에서 객체 좌표
@@ -67,7 +83,7 @@ def half_direction(camera, room) :
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-                    #print("좌표", center_x, center_y, w, h)
+                    print("좌표", center_x, center_y, w, h)
 
                     first_x, first_y = update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width)
      
@@ -131,9 +147,9 @@ def half_direction(camera, room) :
     cv2.destroyAllWindows()
 
 def update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width):
-    if first_x is None and first_y is None:
-        return center_x, center_y
+    
 
+    """
     if abs(center_x - prev_x) > 150 or abs(center_y - prev_y) > 180:
         if 180 <= prev_x <= 460 and 180 <= center_x <= 460:
             if first_x <= 320 and center_x >= 340:
@@ -143,11 +159,15 @@ def update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room,
                 updateCSV("left", room)
                 return None, None
         return None, None
-
-    if first_x <= 320 and 340 <= center_x <= width:
+    """
+    if center_x < 160 or center_x >480 :
+        return None, None
+    if first_x is None and first_y is None:
+        return center_x, center_y
+    if first_x <= 320 and 330 <= center_x <= width:
         updateCSV("right", room)
         return None, None
-    elif 320 < first_x <= width and 0 <= center_x < 300:
+    elif 320 < first_x <= width and 0 <= center_x < 310:
         updateCSV("left", room)
         return None, None
 
