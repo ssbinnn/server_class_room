@@ -7,21 +7,8 @@ def half_direction(camera, room) :
 
     # YOLO 모델 로드
     #net = cv2.dnn.readNet("D:\graduate\practice\\test_0415\yolov3_training_last.weights", "D:\graduate\practice\\test_0415\yolov3_testing.cfg")
-    net=cv2.dnn.readNet("D:\\Graduate\\yolov3_training_last.weights","D:\\Graduate\\yolov3_total.cfg")
-    """
-    weight 파일
-    C:\\Users\\tnehd\\Downloads\\yolov3_training_final.weights  
-    C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights  
-    D:\\Graduate\\yolov3_training_final.weights
-    D:\\Graduate\\yolov3_training_last.weights 
+    net=cv2.dnn.readNet("C:\\Users\\tnehd\\Downloads\\yolov3_training_last.weights","C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg")
 
-    cfg 파일
-    C:\\Users\\tnehd\\Downloads\\yolov3_testing.cfg
-    C:\\Users\\tnehd\\Downloads\\yolov3_add.cfg
-    D:\\Graduate\\yolov3_add.cfg
-    D:\\Graduate\\yolov3_total.cfg
-    """
-    
     layer_names = net.getLayerNames()
     output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
@@ -46,11 +33,6 @@ def half_direction(camera, room) :
 
         # 이미지를 YOLO 모델에 입력할 수 있는 형태로 변환
         blob = cv2.dnn.blobFromImage(frame, 0.00392, (320, 320), (0, 0, 0), True, crop=False)
-        """
-        320,320 : 정확도 떨어짐, 속도 빠름
-        416,416 : 중간
-        609,609 : 정확도 높음 속도 느림
-        """
 
         net.setInput(blob) # 변환된 이미지를 YOLO 모델에 입력
         outs = net.forward(output_layers) # 객체 감지 결과. 탐지된 개체에 대한 정보와 위치 제공
@@ -86,46 +68,6 @@ def half_direction(camera, room) :
                     print("좌표", center_x, center_y, w, h)
 
                     first_x, first_y = update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width)
-     
-                    """
-                    if first_x is None and first_y is None : # 객체 인식이 없었던 경우. 인식 시작 순간의 좌표 저장
-                        first_x, first_y = center_x, center_y
-                        #print("first : ", first_x, first_y)
-
-                    elif first_x is not None and first_y is not None : # 객체 인식이 있었던 경우
-                        if (abs(center_x - prev_x) > (width/2-bound)/3 or abs(center_y - prev_y) > height/3) :
-                            # 프레임 끊김 현상이 있었던 경우 (이동 간격이 큰 경우)
-                            if ((prev_x >= (width/4 + bound) and prev_x <= (width*0.75 - bound)) and
-                                 (center_x >= (width/4 + bound) and center_x <= (width*0.75 - bound))) :
-                                # 허용 범위 내에서 프레임 끊김 현상이 있었던 경우
-                                # 현 위치 x와 인식 시작됐던 first_x 차이로 방향 파악
-                                if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound))) :  # 화면 오른쪽으로 이동
-                                    #print("right")
-                                    updateCSV("right", room)
-                                    first_x, first_y = None, None
-
-                                elif ((first_x > width/2 and first_x <= width) and (center_x <= (width/2 - bound))) :  # 화면 왼쪽으로 이동
-                                    #print("left")
-                                    updateCSV("left", room)
-                                    first_x, first_y = None, None
-
-                            else : # 허용 범위를 벗어난 간격일 경우
-                                first_x, first_y = None, None # 객체 인식 시작 좌표를 None으로 초기화
-                                print("점프")
-
-                        else :
-
-                            # 현 위치 x와 인식 시작 위치 first_x 차이
-                            if ((first_x >= 0 and first_x <= width/2) and (center_x >= (width/2 + bound) and center_x <= width)) : # 화면 오른쪽으로 이동
-                                #print("right")
-                                updateCSV("right", room)
-                                first_x, first_y = None, None
-
-                            elif ((first_x > width/2 and first_x <= width) and (center_x >= 0 and center_x < (width/2 - bound))) :  # 화면 왼쪽으로 이동
-                                #print("left")
-                                updateCSV("left", room)
-                                first_x, first_y = None, None
-                                """
 
 
         # 비 최대 억제를 통해 겹치는 박스를 제거 (노이즈 제거)
@@ -147,19 +89,6 @@ def half_direction(camera, room) :
     cv2.destroyAllWindows()
 
 def update_direction(first_x, first_y, center_x, center_y, prev_x, prev_y, room, width):
-    
-
-    """
-    if abs(center_x - prev_x) > 150 or abs(center_y - prev_y) > 180:
-        if 180 <= prev_x <= 460 and 180 <= center_x <= 460:
-            if first_x <= 320 and center_x >= 340:
-                updateCSV("right", room)
-                return None, None
-            elif first_x > 320 and center_x <= 300:
-                updateCSV("left", room)
-                return None, None
-        return None, None
-    """
     if center_x < 160 or center_x >480 :
         return None, None
     if first_x is None and first_y is None:
